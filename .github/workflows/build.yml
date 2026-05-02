@@ -1,34 +1,33 @@
 name: Build SERFCN Dylib
-  on:
-    push:
-      branches: [ main, master ]
-    workflow_dispatch:
-  jobs:
-    build:
-      runs-on: macos-latest
-      steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Dependencies
-        run: brew install make ldid xz dpkg
-      - name: Setup Theos
-        run: |
-          git clone --depth=1 https://github.com/theos/theos.git $HOME/theos
-          cd $HOME/theos && git submodule update --init --recursive --depth=1
-          curl -LO https://github.com/theos/sdks/releases/download/pre-2024-09-27/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $HOME/theos/sdks/
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-      - name: Build Tweak
-        run: |
-          export THEOS=$HOME/theos
-          make clean
-          make package FINALPACKAGE=1 ARCHS=arm64 THEOS_PACKAGE_SCHEME=rootless
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SERFCN-build
-          path: |
-            .theos/obj/**/*.dylib
-            packages/*.deb
-          if-no-files-found: warn
-  
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: brew install make ldid xz dpkg
+    - name: Setup Theos
+      run: |
+        git clone --depth=1 https://github.com/theos/theos.git $HOME/theos
+        cd $HOME/theos && git submodule update --init --recursive --depth=1
+        curl -LO https://github.com/theos/sdks/releases/download/pre-2024-09-27/iPhoneOS16.5.sdk.tar.xz
+        tar -xf iPhoneOS16.5.sdk.tar.xz -C $HOME/theos/sdks/
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+    - name: Build Tweak
+      run: |
+        export THEOS=$HOME/theos
+        make clean
+        make package FINALPACKAGE=1 ARCHS=arm64 THEOS_PACKAGE_SCHEME=rootless
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SERFCN-build
+        path: |
+          .theos/obj/**/*.dylib
+          packages/*.deb
+        if-no-files-found: warn
