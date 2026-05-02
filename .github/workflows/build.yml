@@ -1,0 +1,30 @@
+name: Build SERFCN Dylib
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Theos
+      run: |
+        git clone --recursive https://github.com/theos/theos.git $HOME/theos
+        curl -LO https://github.com/theos/sdks/releases/latest/download/iPhoneOS17.5.sdk.tar.xz
+        tar -xf iPhoneOS17.5.sdk.tar.xz -C $HOME/theos/sdks/
+        echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+    - name: Build
+      run: |
+        brew install make ldid xz dpkg
+        export THEOS=$HOME/theos
+        make clean
+        make package FINALPACKAGE=1 ARCHS=arm64 THEOS_PACKAGE_SCHEME=rootless
+    - uses: actions/upload-artifact@v4
+      with:
+        name: SERFCN-build
+        path: |
+          .theos/obj/**/*.dylib
+          packages/*.deb
